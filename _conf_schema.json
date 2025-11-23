@@ -1,40 +1,41 @@
 {
-  "name": "commands",
-  "label": "自定义指令配置",
-  "description": "配置自定义的图片生成指令",
-  "type": "object_list",
-  "items": [
-    {
-      "name": "trigger",
-      "label": "触发词",
-      "description": "指令的触发词，例如：手办化",
-      "type": "string",
-      "required": true
-    },
-    {
-      "name": "prompt",
-      "label": "提示词",
-      "description": "生成图片的提示词",
-      "type": "string",
-      "required": true
-    },
-    {
-      "name": "negative_prompt",
-      "label": "反向提示词",
-      "description": "生成图片的反向提示词",
-      "type": "string"
-    },
-    {
-      "name": "model",
-      "label": "模型",
-      "description": "指定使用的模型，留空则使用默认",
-      "type": "string"
-    },
-    {
-      "name": "provider",
-      "label": "提供商",
-      "description": "指定使用的提供商，留空则使用默认",
-      "type": "string"
+  "commands": {
+    "description": "自定义指令配置列表",
+    "type": "list",
+    "hint": "配置多个自定义的图片生成指令",
+    "default": [],
+    "items": {
+      "type": "object",
+      "items": {
+        "trigger": {
+          "description": "触发词",
+          "type": "string",
+          "hint": "指令的触发词，例如：手办化"
+        },
+        "prompt": {
+          "description": "提示词",
+          "type": "text",
+          "hint": "生成图片的提示词"
+        },
+        "negative_prompt": {
+          "description": "反向提示词",
+          "type": "text",
+          "hint": "生成图片的反向提示词",
+          "default": ""
+        },
+        "model": {
+          "description": "模型",
+          "type": "string",
+          "hint": "指定使用的模型，留空则使用默认",
+          "default": ""
+        },
+        "provider": {
+          "description": "提供商",
+          "type": "string",
+          "hint": "指定使用的提供商，留空则使用默认",
+          "default": ""
+        }
+      }
     }
-  ]
+  }
 }
