@@ -25,7 +25,7 @@
   },
   "commands": {
     "description": "自定义指令列表",
-    "type": "array",
+    "type": "list",
     "hint": "配置多个自定义图片生成指令",
     "default": [
       {
