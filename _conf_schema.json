@@ -1,0 +1,40 @@
+{
+  "name": "commands",
+  "label": "自定义指令配置",
+  "description": "配置自定义的图片生成指令",
+  "type": "object_list",
+  "items": [
+    {
+      "name": "trigger",
+      "label": "触发词",
+      "description": "指令的触发词，例如：手办化",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "prompt",
+      "label": "提示词",
+      "description": "生成图片的提示词",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "negative_prompt",
+      "label": "反向提示词",
+      "description": "生成图片的反向提示词",
+      "type": "string"
+    },
+    {
+      "name": "model",
+      "label": "模型",
+      "description": "指定使用的模型，留空则使用默认",
+      "type": "string"
+    },
+    {
+      "name": "provider",
+      "label": "提供商",
+      "description": "指定使用的提供商，留空则使用默认",
+      "type": "string"
+    }
+  ]
+}

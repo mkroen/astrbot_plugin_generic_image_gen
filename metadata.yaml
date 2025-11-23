@@ -1,0 +1,6 @@
+plugin_type: astrbot_plugin
+name: astrbot_plugin_generic_image_gen
+desc: 通用图片生成插件，支持自定义指令和提示词，支持生图指令
+version: 0.1.0
+author: mkroen
+url: https://github.com/mkroen/astrbot_plugin_generic_image_gen
