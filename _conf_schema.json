@@ -1,15 +1,15 @@
 {
-  "api_base": {
+  "api_base_url": {
     "description": "API 地址",
     "type": "string",
     "hint": "图片生成 API 的基础地址",
     "default": ""
   },
-  "api_key": {
-    "description": "API 密钥",
-    "type": "string",
-    "hint": "图片生成 API 的密钥",
-    "default": ""
+  "api_keys": {
+    "description": "API 密钥列表",
+    "type": "list",
+    "hint": "图片生成 API 的密钥列表，支持多个密钥自动轮换",
+    "default": []
   },
   "default_model": {
     "description": "默认模型",
@@ -17,18 +17,23 @@
     "hint": "默认使用的图片生成模型",
     "default": ""
   },
-  "default_provider": {
-    "description": "默认提供商",
-    "type": "string",
-    "hint": "默认使用的提供商名称",
-    "default": ""
+  "basic_generation": {
+    "description": "基础生图配置",
+    "type": "object",
+    "hint": "配置基础生图指令的触发词和参数",
+    "default": {
+      "enabled": true,
+      "trigger": "生图",
+      "model": "",
+      "negative_prompt": ""
+    }
   },
   "commands": {
     "description": "自定义指令列表",
     "type": "list",
-    "hint": "每个项是一个 JSON 字符串，包含 trigger、prompt、negative_prompt、model、provider 字段。可动态添加删除。",
+    "hint": "每个项是一个 JSON 字符串，包含 trigger、prompt、negative_prompt、model 字段。可动态添加删除。",
     "default": [
-      "{\"trigger\": \"手办化\", \"prompt\": \"Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.\", \"negative_prompt\": \"low quality, blurry\", \"model\": \"\", \"provider\": \"\"}"
+      "{\"trigger\": \"手办化\", \"prompt\": \"Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.\", \"negative_prompt\": \"low quality, blurry\", \"model\": \"\"}"
     ]
   }
 }

@@ -7,7 +7,7 @@
 * **通用生图指令**：使用 `生图 [提示词]` 快速生成图片，简单直接。
 * **图生图支持**：自动识别消息中的图片、回复的图片、或 `@用户` 来获取头像作为参考图进行生成。
 * **自动处理GIF**：插件会自动识别GIF动图并提取第一帧进行处理，无需用户手动转换。
-* **高度可定制**：通过配置文件创建专属指令，自定义触发词、提示词、反向提示词、模型和提供商。
+* **高度可定制**：通过配置文件创建专属指令，自定义触发词、提示词、反向提示词和模型。
 * **灵活配置**：每个自定义指令都可以独立配置参数，满足不同场景需求。
 
 ## 安装与配置
@@ -33,10 +33,20 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 
 | 配置项 | 类型 | 描述 |
 |--------|------|------|
-| api_base | 字符串 | （可选）图片生成 API 的基础地址 |
-| api_key | 字符串 | （可选）图片生成 API 的密钥 |
+| api_base_url | 字符串 | （可选）图片生成 API 的基础地址 |
+| api_keys | 列表 | （可选）图片生成 API 的密钥列表，支持多个密钥自动轮换 |
 | default_model | 字符串 | （可选）默认使用的图片生成模型 |
-| default_provider | 字符串 | （可选）默认使用的提供商名称 |
+
+#### 基础生图配置
+
+`basic_generation` 对象配置项：
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| enabled | 布尔值 | 是否启用基础生图功能，默认为 true |
+| trigger | 字符串 | 触发词，默认为"生图" |
+| model | 字符串 | （可选）指定使用的模型 |
+| negative_prompt | 字符串 | （可选）默认的反向提示词 |
 
 #### 自定义指令配置
 
@@ -48,7 +58,6 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 | prompt | 字符串 | **（必需）** 生成图片的提示词 |
 | negative_prompt | 字符串 | （可选）不希望出现的内容，用于提高生成质量 |
 | model | 字符串 | （可选）指定使用的模型名称，留空则使用默认模型 |
-| provider | 字符串 | （可选）指定使用的提供商名称，留空则使用默认提供商 |
 
 ### 配置示例
 
@@ -60,8 +69,7 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
     "trigger": "手办化",
     "prompt": "Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.",
     "negative_prompt": "low quality, blurry, distorted",
-    "model": "",
-    "provider": ""
+    "model": ""
   }
 ]
 ```
@@ -75,8 +83,7 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
   "trigger": "你的触发词",
   "prompt": "你的提示词描述",
   "negative_prompt": "不想要的内容",
-  "model": "",
-  "provider": ""
+  "model": ""
 }
 ```
 
