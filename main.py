@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+import json
 from typing import Optional
 import aiohttp
 from PIL import Image as PILImage
@@ -112,12 +113,14 @@ class GenericImageGenPlugin(Star):
         self.api_base_url = self.config.get("api_base_url", "")
 
         # 基础生图配置
-        self.basic_gen_config = self.config.get(
+        basic_gen = self.config.get(
             "basic_generation", {"enabled": True, "trigger": "生图", "model": "", "negative_prompt": ""}
         )
+        self.basic_gen_config = json.loads(basic_gen) if isinstance(basic_gen, str) else basic_gen
 
-        # 直接使用配置中的指令列表
-        self.commands_config = self.config.get("commands", [])
+        # 解析指令列表
+        commands = self.config.get("commands", [])
+        self.commands_config = [json.loads(cmd) if isinstance(cmd, str) else cmd for cmd in commands]
 
         self.iwf = ImageWorkflow()
 
