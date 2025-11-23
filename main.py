@@ -1,7 +1,6 @@
 import asyncio
 import base64
 import io
-import json
 from typing import Optional
 import aiohttp
 from PIL import Image as PILImage
@@ -117,17 +116,8 @@ class GenericImageGenPlugin(Star):
             "basic_generation", {"enabled": True, "trigger": "生图", "model": "", "negative_prompt": ""}
         )
 
-        # 解析 JSON 字符串列表
-        commands_list = self.config.get("commands", [])
-        self.commands_config = []
-
-        for cmd_str in commands_list:
-            try:
-                cmd = json.loads(cmd_str) if isinstance(cmd_str, str) else cmd_str
-                if cmd.get("trigger"):  # 只添加有触发词的指令
-                    self.commands_config.append(cmd)
-            except json.JSONDecodeError as e:
-                logger.error(f"指令配置解析失败: {cmd_str}, 错误: {e}")
+        # 直接使用配置中的指令列表
+        self.commands_config = self.config.get("commands", [])
 
         self.iwf = ImageWorkflow()
 

@@ -24,6 +24,28 @@
     "description": "基础生图配置",
     "type": "object",
     "hint": "配置基础生图指令的触发词和参数",
+    "items": {
+      "enabled": {
+        "description": "是否启用基础生图",
+        "type": "bool",
+        "default": true
+      },
+      "trigger": {
+        "description": "触发词",
+        "type": "string",
+        "default": "生图"
+      },
+      "model": {
+        "description": "使用的模型",
+        "type": "string",
+        "default": ""
+      },
+      "negative_prompt": {
+        "description": "负面提示词",
+        "type": "string",
+        "default": ""
+      }
+    },
     "default": {
       "enabled": true,
       "trigger": "生图",
@@ -34,14 +56,35 @@
   "commands": {
     "description": "自定义指令列表",
     "type": "list",
-    "hint": "每个项是一个 JSON 字符串，包含 trigger、prompt、negative_prompt、model 字段。可动态添加删除。",
+    "hint": "每个项是一个对象，包含 trigger、prompt、negative_prompt、model 字段",
     "items": {
-      "type": "string",
-      "editor_mode": true,
-      "editor_language": "json"
+      "type": "object",
+      "items": {
+        "trigger": {
+          "description": "指令触发词",
+          "type": "string"
+        },
+        "prompt": {
+          "description": "生成提示词",
+          "type": "string"
+        },
+        "negative_prompt": {
+          "description": "负面提示词",
+          "type": "string"
+        },
+        "model": {
+          "description": "该指令使用的模型",
+          "type": "string"
+        }
+      }
     },
     "default": [
-      "{\"trigger\": \"手办化\", \"prompt\": \"Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.\", \"negative_prompt\": \"low quality, blurry\", \"model\": \"\"}"
+      {
+        "trigger": "手办化",
+        "prompt": "Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.",
+        "negative_prompt": "low quality, blurry",
+        "model": ""
+      }
     ]
   }
 }
