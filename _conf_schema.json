@@ -23,40 +23,47 @@
     "hint": "默认使用的提供商名称",
     "default": ""
   },
-  "cmd_figurine": {
-    "description": "手办化指令配置",
-    "type": "object",
-    "hint": "配置手办化指令的参数",
+  "commands": {
+    "description": "自定义指令列表",
+    "type": "array",
+    "hint": "配置多个自定义图片生成指令",
+    "default": [
+      {
+        "trigger": "手办化",
+        "prompt": "Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.",
+        "negative_prompt": "low quality, blurry",
+        "model": "",
+        "provider": ""
+      }
+    ],
     "items": {
-      "trigger": {
-        "description": "触发词",
-        "type": "string",
-        "hint": "指令的触发词",
-        "default": "手办化"
-      },
-      "prompt": {
-        "description": "提示词",
-        "type": "text",
-        "hint": "生成图片的提示词",
-        "default": "Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork."
-      },
-      "negative_prompt": {
-        "description": "反向提示词",
-        "type": "text",
-        "hint": "生成图片的反向提示词",
-        "default": "low quality, blurry"
-      },
-      "model": {
-        "description": "模型",
-        "type": "string",
-        "hint": "指定使用的模型，留空则使用默认",
-        "default": ""
-      },
-      "provider": {
-        "description": "提供商",
-        "type": "string",
-        "hint": "指定使用的提供商，留空则使用默认",
-        "default": ""
+      "type": "object",
+      "items": {
+        "trigger": {
+          "description": "触发词",
+          "type": "string",
+          "hint": "指令的触发词"
+        },
+        "prompt": {
+          "description": "提示词",
+          "type": "text",
+          "hint": "生成图片的提示词"
+        },
+        "negative_prompt": {
+          "description": "反向提示词",
+          "type": "text",
+          "hint": "生成图片的反向提示词"
+        },
+        "model": {
+          "description": "模型",
+          "type": "string",
+          "hint": "指定使用的模型，留空则使用默认"
+        },
+        "provider": {
+          "description": "提供商",
+          "type": "string",
+          "hint": "指定使用的提供商，留空则使用默认"
+        }
       }
     }
   }
