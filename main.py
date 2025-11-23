@@ -100,7 +100,13 @@ class GenericImageGenPlugin(Star):
     def __init__(self, context: Context, config: dict):
         super().__init__(context)
         self.config = config
-        self.commands_config = self.config.get("commands", [])
+
+        # 构建 commands 配置列表
+        self.commands_config = []
+        cmd_figurine = self.config.get("cmd_figurine", {})
+        if cmd_figurine and cmd_figurine.get("trigger"):
+            self.commands_config.append(cmd_figurine)
+
         self.iwf = ImageWorkflow()
 
     async def terminate(self):
