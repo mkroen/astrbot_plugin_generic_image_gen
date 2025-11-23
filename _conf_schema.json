@@ -24,47 +24,11 @@
     "default": ""
   },
   "commands": {
-    "description": "自定义指令列表",
-    "type": "list",
-    "hint": "配置多个自定义图片生成指令",
-    "default": [
-      {
-        "trigger": "手办化",
-        "prompt": "Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.",
-        "negative_prompt": "low quality, blurry",
-        "model": "",
-        "provider": ""
-      }
-    ],
-    "items": {
-      "type": "object",
-      "items": {
-        "trigger": {
-          "description": "触发词",
-          "type": "string",
-          "hint": "指令的触发词"
-        },
-        "prompt": {
-          "description": "提示词",
-          "type": "text",
-          "hint": "生成图片的提示词"
-        },
-        "negative_prompt": {
-          "description": "反向提示词",
-          "type": "text",
-          "hint": "生成图片的反向提示词"
-        },
-        "model": {
-          "description": "模型",
-          "type": "string",
-          "hint": "指定使用的模型，留空则使用默认"
-        },
-        "provider": {
-          "description": "提供商",
-          "type": "string",
-          "hint": "指定使用的提供商，留空则使用默认"
-        }
-      }
-    }
+    "description": "自定义指令列表（JSON 格式）",
+    "type": "text",
+    "hint": "JSON 数组格式，每个指令包含：trigger(触发词)、prompt(提示词)、negative_prompt(反向提示词)、model(模型)、provider(提供商)。可以添加多个指令。",
+    "editor_mode": true,
+    "editor_language": "json",
+    "default": "[\n  {\n    \"trigger\": \"手办化\",\n    \"prompt\": \"Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.\",\n    \"negative_prompt\": \"low quality, blurry\",\n    \"model\": \"\",\n    \"provider\": \"\"\n  }\n]"
   }
 }

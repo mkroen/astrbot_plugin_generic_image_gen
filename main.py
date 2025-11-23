@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+import json
 from typing import Optional
 import aiohttp
 from PIL import Image as PILImage
@@ -100,7 +101,15 @@ class GenericImageGenPlugin(Star):
     def __init__(self, context: Context, config: dict):
         super().__init__(context)
         self.config = config
-        self.commands_config = self.config.get("commands", [])
+
+        # 解析 JSON 格式的 commands 配置
+        commands_str = self.config.get("commands", "[]")
+        try:
+            self.commands_config = json.loads(commands_str) if isinstance(commands_str, str) else commands_str
+        except json.JSONDecodeError as e:
+            logger.error(f"commands 配置解析失败: {e}，使用空列表")
+            self.commands_config = []
+
         self.iwf = ImageWorkflow()
 
     async def terminate(self):

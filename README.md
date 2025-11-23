@@ -29,36 +29,54 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 
 在 AstrBot 管理面板的 `插件管理` -> `通用图片生成插件` 中进行配置。
 
+#### 全局配置
+
 | 配置项 | 类型 | 描述 |
 |--------|------|------|
+| api_base | 字符串 | （可选）图片生成 API 的基础地址 |
+| api_key | 字符串 | （可选）图片生成 API 的密钥 |
+| default_model | 字符串 | （可选）默认使用的图片生成模型 |
+| default_provider | 字符串 | （可选）默认使用的提供商名称 |
+
+#### 自定义指令配置
+
+在 `commands` 配置项中使用 JSON 格式配置多个自定义指令。每个指令包含以下字段：
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
 | trigger | 字符串 | **（必需）** 指令的触发词，例如：手办化、二次元化 |
 | prompt | 字符串 | **（必需）** 生成图片的提示词 |
 | negative_prompt | 字符串 | （可选）不希望出现的内容，用于提高生成质量 |
-| model | 字符串 | （可选）指定使用的模型名称 |
-| provider | 字符串 | （可选）指定使用的提供商名称 |
+| model | 字符串 | （可选）指定使用的模型名称，留空则使用默认模型 |
+| provider | 字符串 | （可选）指定使用的提供商名称，留空则使用默认提供商 |
 
 ### 配置示例
 
+在管理面板的 `commands` 配置项中，使用 JSON 编辑器输入以下内容：
+
+```json
+[
+  {
+    "trigger": "手办化",
+    "prompt": "Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.",
+    "negative_prompt": "low quality, blurry, distorted",
+    "model": "",
+    "provider": ""
+  }
+]
+```
+
+### 配置模板
+
+复制以下模板添加新指令：
+
 ```json
 {
-  "commands": [
-    {
-      "trigger": "手办化",
-      "prompt": "figure, toy, product photography, white background, high quality",
-      "negative_prompt": "blurry, low quality, distorted"
-    },
-    {
-      "trigger": "二次元",
-      "prompt": "anime style, colorful, vibrant, high quality illustration",
-      "negative_prompt": "realistic, photo, 3d",
-      "model": "anime-diffusion"
-    },
-    {
-      "trigger": "油画风格",
-      "prompt": "oil painting style, artistic, classical art",
-      "provider": "openai"
-    }
-  ]
+  "trigger": "你的触发词",
+  "prompt": "你的提示词描述",
+  "negative_prompt": "不想要的内容",
+  "model": "",
+  "provider": ""
 }
 ```
 
