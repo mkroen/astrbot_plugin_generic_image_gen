@@ -9,6 +9,9 @@
     "description": "API 密钥列表",
     "type": "list",
     "hint": "图片生成 API 的密钥列表，支持多个密钥自动轮换",
+    "items": {
+      "type": "string"
+    },
     "default": []
   },
   "default_model": {
