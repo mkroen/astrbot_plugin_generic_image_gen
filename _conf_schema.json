@@ -24,11 +24,11 @@
     "default": ""
   },
   "commands": {
-    "description": "自定义指令列表（JSON 格式）",
-    "type": "text",
-    "hint": "JSON 数组格式，每个指令包含：trigger(触发词)、prompt(提示词)、negative_prompt(反向提示词)、model(模型)、provider(提供商)。可以添加多个指令。",
-    "editor_mode": true,
-    "editor_language": "json",
-    "default": "[\n  {\n    \"trigger\": \"手办化\",\n    \"prompt\": \"Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.\",\n    \"negative_prompt\": \"low quality, blurry\",\n    \"model\": \"\",\n    \"provider\": \"\"\n  }\n]"
+    "description": "自定义指令列表",
+    "type": "list",
+    "hint": "每个项是一个 JSON 字符串，包含 trigger、prompt、negative_prompt、model、provider 字段。可动态添加删除。",
+    "default": [
+      "{\"trigger\": \"手办化\", \"prompt\": \"Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.\", \"negative_prompt\": \"low quality, blurry\", \"model\": \"\", \"provider\": \"\"}"
+    ]
   }
 }

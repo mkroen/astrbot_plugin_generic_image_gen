@@ -102,13 +102,17 @@ class GenericImageGenPlugin(Star):
         super().__init__(context)
         self.config = config
 
-        # 解析 JSON 格式的 commands 配置
-        commands_str = self.config.get("commands", "[]")
-        try:
-            self.commands_config = json.loads(commands_str) if isinstance(commands_str, str) else commands_str
-        except json.JSONDecodeError as e:
-            logger.error(f"commands 配置解析失败: {e}，使用空列表")
-            self.commands_config = []
+        # 解析 JSON 字符串列表
+        commands_list = self.config.get("commands", [])
+        self.commands_config = []
+
+        for cmd_str in commands_list:
+            try:
+                cmd = json.loads(cmd_str) if isinstance(cmd_str, str) else cmd_str
+                if cmd.get("trigger"):  # 只添加有触发词的指令
+                    self.commands_config.append(cmd)
+            except json.JSONDecodeError as e:
+                logger.error(f"指令配置解析失败: {cmd_str}, 错误: {e}")
 
         self.iwf = ImageWorkflow()
 
