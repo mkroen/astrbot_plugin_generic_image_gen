@@ -176,6 +176,7 @@ class GenericImageGenPlugin(Star):
         negative_prompt: Optional[str] = None,
         model: Optional[str] = None,
     ):
+        logger.info(f"_handle_generation 收到参数 - model: '{model}', prompt: '{prompt[:50]}'")
         image_bytes = await self.iwf.get_first_image(event)
         yield event.plain_result("正在生成中，请稍候...")
 
@@ -196,6 +197,8 @@ class GenericImageGenPlugin(Star):
     async def _generate_with_api(
         self, image_bytes: Optional[bytes], prompt: str, negative_prompt: Optional[str], model: Optional[str]
     ) -> bytes | str | None:
+        logger.info(f"_generate_with_api 收到参数 - model: '{model}'")
+
         async def api_operation(api_key: str):
             payload = {"prompt": prompt}
 
@@ -203,6 +206,7 @@ class GenericImageGenPlugin(Star):
                 payload["negative_prompt"] = negative_prompt
             if model:
                 payload["model"] = model
+                logger.info(f"发送到 API 的 model: '{model}'")
             else:
                 logger.error("未指定模型或者默认模型")
                 return "未指定模型或者默认模型"
