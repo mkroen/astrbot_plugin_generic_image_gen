@@ -111,6 +111,7 @@ class GenericImageGenPlugin(Star):
         self.api_keys = self.config.get("api_keys", [])
         self.current_key_index = 0
         self.api_base_url = self.config.get("api_base_url", "")
+        self.default_model = self.config.get("default_model", "")
 
         # 基础生图配置
         basic_gen = self.config.get(
@@ -136,7 +137,7 @@ class GenericImageGenPlugin(Star):
             trigger = self.basic_gen_config.get("trigger", "生图")
             if message_str.startswith(trigger):
                 user_prompt = message_str[len(trigger) :].strip() or " "
-                model = self.basic_gen_config.get("model") or None
+                model = self.basic_gen_config.get("model") or self.default_model
                 negative_prompt = self.basic_gen_config.get("negative_prompt") or None
 
                 async for result in self._handle_generation(
@@ -157,7 +158,7 @@ class GenericImageGenPlugin(Star):
             if message_str.startswith(trigger) or message_str == trigger:
                 fixed_prompt = cmd_config.get("prompt", "")
                 negative_prompt = cmd_config.get("negative_prompt", "")
-                model = cmd_config.get("model")
+                model = cmd_config.get("model") or self.default_model
 
                 async for result in self._handle_generation(
                     event,
@@ -202,6 +203,9 @@ class GenericImageGenPlugin(Star):
                 payload["negative_prompt"] = negative_prompt
             if model:
                 payload["model"] = model
+            else:
+                logger.error("未指定模型或者默认模型")
+                return "未指定模型或者默认模型"
 
             if image_bytes:
                 image_base64 = base64.b64encode(image_bytes).decode("utf-8")
