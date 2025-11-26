@@ -222,26 +222,38 @@ class GenericImageGenPlugin(Star):
 
     async def _send_api_request(self, payload: dict, api_key: str):
         base_url = self.api_base_url.strip().removesuffix("/")
-        endpoint = f"{base_url}/v1/images/generations"
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        model = payload.get("model", "")
 
-        async with self.iwf.session.post(url=endpoint, json=payload, headers=headers) as response:
+        # Gemini API 调用方式
+        endpoint = f"{base_url}/v1beta/models/{model}:generateContent?key={api_key}"
+        headers = {"Content-Type": "application/json"}
+
+        # 构建 Gemini 格式的 payload
+        parts = [{"text": payload["prompt"]}]
+        if "image" in payload:
+            parts.append({"inlineData": {"mimeType": "image/png", "data": payload["image"]}})
+
+        gemini_payload = {
+            "contents": [{"role": "user", "parts": parts}],
+            "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
+        }
+
+        async with self.iwf.session.post(url=endpoint, json=gemini_payload, headers=headers) as response:
             if response.status != 200:
                 response_text = await response.text()
                 logger.error(f"API请求失败: HTTP {response.status}, 响应: {response_text}")
                 response.raise_for_status()
             data = await response.json()
 
-        if "data" in data and len(data["data"]) > 0:
-            if "url" in data["data"][0]:
-                image_url = data["data"][0]["url"]
-                return await self.iwf._download_image(image_url)
-            elif "b64_json" in data["data"][0]:
-                b64_string = data["data"][0]["b64_json"].strip()
-                missing_padding = len(b64_string) % 4
-                if missing_padding:
-                    b64_string += "=" * (4 - missing_padding)
-                return base64.b64decode(b64_string)
+        if (
+            "candidates" in data
+            and data["candidates"]
+            and "content" in data["candidates"][0]
+            and "parts" in data["candidates"][0]["content"]
+        ):
+            for part in data["candidates"][0]["content"]["parts"]:
+                if "inlineData" in part and "data" in part["inlineData"]:
+                    return base64.b64decode(part["inlineData"]["data"])
 
         raise Exception("操作成功，但未在响应中获取到图片数据")
 
