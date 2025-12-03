@@ -87,6 +87,49 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 }
 ```
 
+### 推荐提示词
+
+以下是一些有趣的提示词配置，可以直接复制使用：
+
+<details>
+<summary>🧸 玩偶化 - 将人物变成毛绒玩具</summary>
+
+```json
+{
+  "trigger": "玩偶化",
+  "prompt": "Turn the person in the uploaded picture into a soft, high-quality plush toy, with an oversized head, small body, and stubby limbs. Made of fuzzy fabric with visible stitching and embroidered facial features. The plush is shown sitting or standing against a neutral background. The expression is cute or expressive, and it wears simple clothes or iconic accessories if relevant. Lighting is soft and even, with a realistic, collectible plush look. Centered, full-body view.",
+  "negative_prompt": "low quality, blurry",
+  "model": ""
+}
+```
+</details>
+
+<details>
+<summary>👩 拟人化 - 将角色变成真人Coser</summary>
+
+```json
+{
+  "trigger": "拟人化",
+  "prompt": "生成图片主体的真人东亚美女COSER，18岁，年轻，可爱，萌，身材好，真实的cosplay出片感，并保持当前主体的衣着及姿势，皮肤及衣物为真实的质感，侧后放置画架展示图片本身。位置在东京无人街头，保持相同姿势。像从插画里走出来的活人一样，完美精细的脸，直发，大眼睛，活泼。以人物为主体，画面中人物占比高。",
+  "negative_prompt": "low quality, blurry",
+  "model": "gemini-3-pro-image-preview"
+}
+```
+</details>
+
+<details>
+<summary>📝 帮我做题 - 生成手写解题过程</summary>
+
+```json
+{
+  "trigger": "帮我做题",
+  "prompt": "Create a fully hand-drawn sketch-style illustration. Use the image I provide as the problem statement. Your output must be an illustration, not text. Illustrate a sheet of slightly wrinkled draft paper placed on a desk. On this draft paper, draw the entire solution process to the math problem from the input image. The solution must appear as natural student handwriting. Show all steps visually: formulas, calculations, arrows, marginal notes, circled key results. Pencil-style strokes with light smudging, small eraser marks, uneven pressure, realistic imperfections. If relevant, include hand-drawn diagrams such as number lines, geometric shapes, coordinate axes. Do not print or typeset any text. Everything must be drawn by hand. Do not rewrite the problem text. The paper only contains the solution. The final result must look like a realistic sketch photograph of a physical piece of draft paper on a desk.",
+  "negative_prompt": "low quality, blurry",
+  "model": "gemini-3-pro-image-preview"
+}
+```
+</details>
+
 ## 使用方法
 
 * **基础用法**
