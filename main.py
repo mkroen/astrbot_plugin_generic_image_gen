@@ -102,7 +102,7 @@ class ImageWorkflow:
     "astrbot_plugin_generic_image_gen",
     "mkroen",
     "通用图片生成插件",
-    "0.1.0",
+    "0.2.1",
     "https://github.com/mkroen/astrbot_plugin_generic_image_gen",
 )
 class GenericImageGenPlugin(Star):
@@ -142,6 +142,7 @@ class GenericImageGenPlugin(Star):
             trigger = self.basic_gen_config.get("trigger", "生图")
             if message_str.startswith(trigger):
                 user_prompt = message_str[len(trigger) :].strip() or " "
+                provider = self.basic_gen_config.get("provider") or self.provider
                 model = self.basic_gen_config.get("model") or self.default_model
                 negative_prompt = self.basic_gen_config.get("negative_prompt") or None
 
@@ -150,6 +151,7 @@ class GenericImageGenPlugin(Star):
                     prompt=user_prompt,
                     negative_prompt=negative_prompt,
                     model=model,
+                    provider=provider,
                 ):
                     yield result
                 return
@@ -163,6 +165,7 @@ class GenericImageGenPlugin(Star):
             if message_str.startswith(trigger) or message_str == trigger:
                 fixed_prompt = cmd_config.get("prompt", "")
                 negative_prompt = cmd_config.get("negative_prompt", "")
+                provider = cmd_config.get("provider") or self.provider
                 model = cmd_config.get("model") or self.default_model
 
                 async for result in self._handle_generation(
@@ -170,6 +173,7 @@ class GenericImageGenPlugin(Star):
                     prompt=fixed_prompt,
                     negative_prompt=negative_prompt,
                     model=model,
+                    provider=provider,
                 ):
                     yield result
                 return
@@ -180,15 +184,17 @@ class GenericImageGenPlugin(Star):
         prompt: str,
         negative_prompt: Optional[str] = None,
         model: Optional[str] = None,
+        provider: Optional[str] = None,
     ):
+        provider = (provider or self.provider).strip().lower()
         logger.info(
-            f"_handle_generation 收到参数 - provider: '{self.provider}', model: '{model}', prompt: '{prompt[:50]}'"
+            f"_handle_generation 收到参数 - provider: '{provider}', model: '{model}', prompt: '{prompt[:50]}'"
         )
         image_bytes = await self.iwf.get_first_image(event, fallback_to_avatar=self.fallback_to_avatar)
         yield event.plain_result("正在生成中，请稍候...")
 
         try:
-            result_bytes = await self._generate_with_api(image_bytes, prompt, negative_prompt, model)
+            result_bytes = await self._generate_with_api(image_bytes, prompt, negative_prompt, model, provider)
 
             if isinstance(result_bytes, bytes):
                 yield event.chain_result([Image.fromBytes(result_bytes)])
@@ -202,9 +208,14 @@ class GenericImageGenPlugin(Star):
             yield event.plain_result(f"生成出错: {e}")
 
     async def _generate_with_api(
-        self, image_bytes: Optional[bytes], prompt: str, negative_prompt: Optional[str], model: Optional[str]
+        self,
+        image_bytes: Optional[bytes],
+        prompt: str,
+        negative_prompt: Optional[str],
+        model: Optional[str],
+        provider: str,
     ) -> bytes | str | None:
-        logger.info(f"_generate_with_api 收到参数 - provider: '{self.provider}', model: '{model}'")
+        logger.info(f"_generate_with_api 收到参数 - provider: '{provider}', model: '{model}'")
 
         async def api_operation(api_key: str):
             payload = {"prompt": prompt}
@@ -223,17 +234,17 @@ class GenericImageGenPlugin(Star):
                 payload["image"] = image_base64
                 payload["image_bytes"] = image_bytes
 
-            return await self._send_api_request(payload, api_key)
+            return await self._send_api_request(payload, api_key, provider)
 
         result = await self._with_retry(api_operation)
         return result if result else "所有API密钥均尝试失败"
 
-    async def _send_api_request(self, payload: dict, api_key: str):
-        if self.provider == "gemini":
+    async def _send_api_request(self, payload: dict, api_key: str, provider: str):
+        if provider == "gemini":
             return await self._send_gemini_request(payload, api_key)
-        if self.provider == "gpt":
+        if provider == "gpt":
             return await self._send_openai_images_request(payload, api_key)
-        raise ValueError(f"不支持的 provider: {self.provider}")
+        raise ValueError(f"不支持的 provider: {provider}")
 
     async def _send_gemini_request(self, payload: dict, api_key: str):
         base_url = self.api_base_url.strip().removesuffix("/")
