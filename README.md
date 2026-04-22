@@ -35,7 +35,7 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 | 配置项 | 类型 | 描述 |
 |--------|------|------|
 | provider | 字符串 | 调用方式。`gemini` 使用 Gemini generateContent；`gpt` 使用 OpenAI Images 兼容接口 |
-| api_base_url | 字符串 | 图片生成 API 的基础地址，例如 `https://generativelanguage.googleapis.com` 或 `https://api.bltcy.ai` |
+| api_base_url | 字符串 | 图片生成 API 的基础地址，填写服务商提供的 API base URL |
 | api_keys | 列表 | 图片生成 API 的密钥列表，支持多个密钥自动轮换 |
 | default_model | 字符串 | 默认使用的图片生成模型，例如 `gemini-3-pro-image-preview` 或 `gpt-image-2` |
 | request_timeout | 整数 | 请求超时时间，单位秒，默认 `900` |
