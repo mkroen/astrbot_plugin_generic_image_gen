@@ -58,12 +58,12 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 * 文生图返回解析 `data[0].b64_json` 或 `data[0].url`
 * 图生图使用 `multipart/form-data` 上传 `image` 文件
 
-柏拉图 GPT 生图示例：
+GPT 生图配置示例：
 
 ```json
 {
   "provider": "gpt",
-  "api_base_url": "https://api.bltcy.ai",
+  "api_base_url": "https://your-api-base.example.com",
   "api_keys": ["sk-..."],
   "default_model": "gpt-image-2",
   "request_timeout": 900,

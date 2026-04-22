@@ -8,7 +8,7 @@
   "api_base_url": {
     "description": "API 地址",
     "type": "string",
-    "hint": "图片生成 API 的基础地址，例如 https://generativelanguage.googleapis.com 或 https://api.bltcy.ai",
+    "hint": "图片生成 API 的基础地址，例如服务商提供的 API base URL",
     "default": ""
   },
   "api_keys": {
