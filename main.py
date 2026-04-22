@@ -102,7 +102,7 @@ class ImageWorkflow:
     "astrbot_plugin_generic_image_gen",
     "mkroen",
     "通用图片生成插件",
-    "0.1.0",
+    "0.2.1",
     "https://github.com/mkroen/astrbot_plugin_generic_image_gen",
 )
 class GenericImageGenPlugin(Star):
