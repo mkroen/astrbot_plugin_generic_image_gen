@@ -80,6 +80,7 @@ GPT 生图配置示例：
 |------|------|------|
 | enabled | 布尔值 | 是否启用基础生图功能，默认为 true |
 | trigger | 字符串 | 触发词，默认为"生图" |
+| provider | 字符串 | （可选）指定调用方式，`gemini` 或 `gpt`，留空则使用全局 `provider` |
 | model | 字符串 | （可选）指定使用的模型，留空则使用 `default_model` |
 | negative_prompt | 字符串 | （可选）默认的反向提示词 |
 
@@ -92,9 +93,20 @@ GPT 生图配置示例：
 | trigger | 字符串 | **（必需）** 指令的触发词，例如：手办化、二次元化 |
 | prompt | 字符串 | **（必需）** 生成图片的提示词 |
 | negative_prompt | 字符串 | （可选）不希望出现的内容，用于提高生成质量 |
+| provider | 字符串 | （可选）指定调用方式，`gemini` 或 `gpt`，留空则使用全局 `provider` |
 | model | 字符串 | （可选）指定使用的模型名称，留空则使用默认模型 |
 
 ### 配置示例
+
+Provider 和 model 的解析规则：
+
+```text
+指令 provider > 全局 provider
+指令 model > 全局 default_model
+```
+
+因此可以让普通 `生图` 默认走 `gpt`，同时让某些自定义指令单独走 `gemini`。
+
 
 在管理面板的 `commands` 配置项中，使用 JSON 编辑器输入以下内容：
 
@@ -102,9 +114,17 @@ GPT 生图配置示例：
 [
   {
     "trigger": "手办化",
+    "provider": "gemini",
     "prompt": "Create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.",
     "negative_prompt": "low quality, blurry, distorted",
-    "model": ""
+    "model": "gemini-3-pro-image-preview"
+  },
+  {
+    "trigger": "直播截图",
+    "provider": "gpt",
+    "prompt": "生成一张竖屏直播截图风格图片",
+    "negative_prompt": "",
+    "model": "gpt-image-2"
   }
 ]
 ```
@@ -116,6 +136,7 @@ GPT 生图配置示例：
 ```json
 {
   "trigger": "你的触发词",
+  "provider": "",
   "prompt": "你的提示词描述",
   "negative_prompt": "不想要的内容",
   "model": ""
@@ -132,6 +153,7 @@ GPT 生图配置示例：
 ```json
 {
   "trigger": "玩偶化",
+  "provider": "",
   "prompt": "Turn the person in the uploaded picture into a soft, high-quality plush toy, with an oversized head, small body, and stubby limbs. Made of fuzzy fabric with visible stitching and embroidered facial features. The plush is shown sitting or standing against a neutral background. The expression is cute or expressive, and it wears simple clothes or iconic accessories if relevant. Lighting is soft and even, with a realistic, collectible plush look. Centered, full-body view.",
   "negative_prompt": "low quality, blurry",
   "model": ""
@@ -145,6 +167,7 @@ GPT 生图配置示例：
 ```json
 {
   "trigger": "拟人化",
+  "provider": "gemini",
   "prompt": "生成图片主体的真人东亚美女COSER，18岁，年轻，可爱，萌，身材好，真实的cosplay出片感，并保持当前主体的衣着及姿势，皮肤及衣物为真实的质感，侧后放置画架展示图片本身。位置在东京无人街头，保持相同姿势。像从插画里走出来的活人一样，完美精细的脸，直发，大眼睛，活泼。以人物为主体，画面中人物占比高。",
   "negative_prompt": "low quality, blurry",
   "model": "gemini-3-pro-image-preview"
@@ -158,6 +181,7 @@ GPT 生图配置示例：
 ```json
 {
   "trigger": "帮我做题",
+  "provider": "gemini",
   "prompt": "Create a fully hand-drawn sketch-style illustration. Use the image I provide as the problem statement. Your output must be an illustration, not text. Illustrate a sheet of slightly wrinkled draft paper placed on a desk. On this draft paper, draw the entire solution process to the math problem from the input image. The solution must appear as natural student handwriting. Show all steps visually: formulas, calculations, arrows, marginal notes, circled key results. Pencil-style strokes with light smudging, small eraser marks, uneven pressure, realistic imperfections. If relevant, include hand-drawn diagrams such as number lines, geometric shapes, coordinate axes. Do not print or typeset any text. Everything must be drawn by hand. Do not rewrite the problem text. The paper only contains the solution. The final result must look like a realistic sketch photograph of a physical piece of draft paper on a desk.",
   "negative_prompt": "low quality, blurry",
   "model": "gemini-3-pro-image-preview"

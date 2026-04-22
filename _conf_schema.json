@@ -68,19 +68,25 @@
         "description": "负面提示词",
         "type": "string",
         "default": ""
+      },
+      "provider": {
+        "description": "调用方式",
+        "type": "string",
+        "default": ""
       }
     },
     "default": {
       "enabled": true,
       "trigger": "生图",
       "model": "",
-      "negative_prompt": ""
+      "negative_prompt": "",
+      "provider": ""
     }
   },
   "commands": {
     "description": "自定义指令列表",
     "type": "list",
-    "hint": "每个项是一个对象，包含 trigger、prompt、negative_prompt、model 字段；provider 由全局配置统一决定",
+    "hint": "每个项是一个对象，包含 trigger、prompt、negative_prompt、provider、model 字段；provider 留空则继承全局配置",
     "items": {
       "type": "object",
       "items": {
@@ -98,6 +104,10 @@
         },
         "model": {
           "description": "该指令使用的模型",
+          "type": "string"
+        },
+        "provider": {
+          "description": "该指令使用的调用方式，gemini 或 gpt；留空则使用全局 provider",
           "type": "string"
         }
       }
