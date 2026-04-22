@@ -2,7 +2,7 @@
   "provider": {
     "description": "调用方式",
     "type": "string",
-    "hint": "gemini 使用 Google Gemini generateContent；openai_images/blt 使用 OpenAI Images 兼容接口",
+    "hint": "gemini 使用 Google Gemini generateContent；gpt 使用 OpenAI Images 兼容接口",
     "default": "gemini"
   },
   "api_base_url": {

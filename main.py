@@ -229,9 +229,9 @@ class GenericImageGenPlugin(Star):
         return result if result else "所有API密钥均尝试失败"
 
     async def _send_api_request(self, payload: dict, api_key: str):
-        if self.provider in {"gemini", "google"}:
+        if self.provider == "gemini":
             return await self._send_gemini_request(payload, api_key)
-        if self.provider in {"openai_images", "openai", "gpt", "blt", "bltcy"}:
+        if self.provider == "gpt":
             return await self._send_openai_images_request(payload, api_key)
         raise ValueError(f"不支持的 provider: {self.provider}")
 

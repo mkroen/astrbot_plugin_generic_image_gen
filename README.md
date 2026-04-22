@@ -5,7 +5,7 @@
 ## 功能特性
 
 * **通用生图指令**：使用 `生图 [提示词]` 快速生成图片，简单直接。
-* **多 provider 支持**：支持 `gemini` 和 `openai_images`/`blt` 两类调用方式。
+* **多 provider 支持**：支持 `gemini` 和 `gpt` 两类调用方式。
 * **图生图支持**：自动识别消息中的图片、回复的图片、或 `@用户` 来获取头像作为参考图进行生成。
 * **自动处理GIF**：插件会自动识别GIF动图并提取第一帧进行处理，无需用户手动转换。
 * **高度可定制**：通过配置文件创建专属指令，自定义触发词、提示词、反向提示词和模型。
@@ -34,7 +34,7 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 
 | 配置项 | 类型 | 描述 |
 |--------|------|------|
-| provider | 字符串 | 调用方式。`gemini` 使用 Gemini generateContent；`openai_images`/`blt` 使用 OpenAI Images 兼容接口 |
+| provider | 字符串 | 调用方式。`gemini` 使用 Gemini generateContent；`gpt` 使用 OpenAI Images 兼容接口 |
 | api_base_url | 字符串 | 图片生成 API 的基础地址，例如 `https://generativelanguage.googleapis.com` 或 `https://api.bltcy.ai` |
 | api_keys | 列表 | 图片生成 API 的密钥列表，支持多个密钥自动轮换 |
 | default_model | 字符串 | 默认使用的图片生成模型，例如 `gemini-3-pro-image-preview` 或 `gpt-image-2` |
@@ -50,7 +50,7 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 * 请求体使用 Gemini `contents[].parts[]` 格式。
 * 图片从 `candidates[].content.parts[].inlineData.data` 解析。
 
-`openai_images` / `blt`：
+`gpt`：
 
 * 文生图：`POST {api_base_url}/v1/images/generations`
 * 图生图：`POST {api_base_url}/v1/images/edits`
@@ -62,7 +62,7 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 
 ```json
 {
-  "provider": "blt",
+  "provider": "gpt",
   "api_base_url": "https://api.bltcy.ai",
   "api_keys": ["sk-..."],
   "default_model": "gpt-image-2",
