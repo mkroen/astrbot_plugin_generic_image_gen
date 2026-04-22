@@ -5,10 +5,11 @@
 ## 功能特性
 
 * **通用生图指令**：使用 `生图 [提示词]` 快速生成图片，简单直接。
+* **多 provider 支持**：支持 `gemini` 和 `openai_images`/`blt` 两类调用方式。
 * **图生图支持**：自动识别消息中的图片、回复的图片、或 `@用户` 来获取头像作为参考图进行生成。
 * **自动处理GIF**：插件会自动识别GIF动图并提取第一帧进行处理，无需用户手动转换。
 * **高度可定制**：通过配置文件创建专属指令，自定义触发词、提示词、反向提示词和模型。
-* **灵活配置**：每个自定义指令都可以独立配置参数，满足不同场景需求。
+* **灵活配置**：基础生图和自定义指令统一使用全局 provider，指令可单独覆盖模型。
 
 ## 安装与配置
 
@@ -33,9 +34,43 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 
 | 配置项 | 类型 | 描述 |
 |--------|------|------|
-| api_base_url | 字符串 | （可选）图片生成 API 的基础地址 |
-| api_keys | 列表 | （可选）图片生成 API 的密钥列表，支持多个密钥自动轮换 |
-| default_model | 字符串 | （可选）默认使用的图片生成模型 |
+| provider | 字符串 | 调用方式。`gemini` 使用 Gemini generateContent；`openai_images`/`blt` 使用 OpenAI Images 兼容接口 |
+| api_base_url | 字符串 | 图片生成 API 的基础地址，例如 `https://generativelanguage.googleapis.com` 或 `https://api.bltcy.ai` |
+| api_keys | 列表 | 图片生成 API 的密钥列表，支持多个密钥自动轮换 |
+| default_model | 字符串 | 默认使用的图片生成模型，例如 `gemini-3-pro-image-preview` 或 `gpt-image-2` |
+| request_timeout | 整数 | 请求超时时间，单位秒，默认 `900` |
+| image_size | 字符串 | OpenAI Images/BLT 输出尺寸，例如 `1024x1024`、`1024x1792`；留空则不传 |
+| fallback_to_avatar | 布尔值 | 无图片时是否使用发送者头像，默认 `false`，避免纯文字生图被头像污染 |
+
+#### Provider 说明
+
+`gemini`：
+
+* Endpoint：`{api_base_url}/v1beta/models/{model}:generateContent?key={api_key}`
+* 请求体使用 Gemini `contents[].parts[]` 格式。
+* 图片从 `candidates[].content.parts[].inlineData.data` 解析。
+
+`openai_images` / `blt`：
+
+* 文生图：`POST {api_base_url}/v1/images/generations`
+* 图生图：`POST {api_base_url}/v1/images/edits`
+* 鉴权：`Authorization: Bearer <api_key>`
+* 文生图返回解析 `data[0].b64_json` 或 `data[0].url`
+* 图生图使用 `multipart/form-data` 上传 `image` 文件
+
+柏拉图 GPT 生图示例：
+
+```json
+{
+  "provider": "blt",
+  "api_base_url": "https://api.bltcy.ai",
+  "api_keys": ["sk-..."],
+  "default_model": "gpt-image-2",
+  "request_timeout": 900,
+  "image_size": "1024x1792",
+  "fallback_to_avatar": false
+}
+```
 
 #### 基础生图配置
 
@@ -45,7 +80,7 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 |------|------|------|
 | enabled | 布尔值 | 是否启用基础生图功能，默认为 true |
 | trigger | 字符串 | 触发词，默认为"生图" |
-| model | 字符串 | （可选）指定使用的模型 |
+| model | 字符串 | （可选）指定使用的模型，留空则使用 `default_model` |
 | negative_prompt | 字符串 | （可选）默认的反向提示词 |
 
 #### 自定义指令配置
@@ -134,10 +169,10 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 
 * **基础用法**
   * 发送 `生图 一只可爱的猫咪` 直接生成图片。
-  * 发送 `生图` 然后发送一张图片进行图生图。
+  * 发送 `生图` 并附带一张图片进行图生图。
   
 * **自定义指令**
-  * 发送 `手办化`，然后发送一张图片。
+  * 发送 `手办化`，并附带一张图片。
   * 回复一张图片，并发送 `手办化`。
   * 发送 `手办化 @某人` 来将对方的头像进行转换。
 
@@ -150,4 +185,3 @@ git clone https://github.com/mkroen/astrbot_plugin_generic_image_gen.git
 当前版本：v0.1.0  
 作者：mkroen  
 许可：MIT License
-

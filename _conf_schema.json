@@ -1,8 +1,14 @@
 {
+  "provider": {
+    "description": "调用方式",
+    "type": "string",
+    "hint": "gemini 使用 Google Gemini generateContent；openai_images/blt 使用 OpenAI Images 兼容接口",
+    "default": "gemini"
+  },
   "api_base_url": {
     "description": "API 地址",
     "type": "string",
-    "hint": "图片生成 API 的基础地址",
+    "hint": "图片生成 API 的基础地址，例如 https://generativelanguage.googleapis.com 或 https://api.bltcy.ai",
     "default": ""
   },
   "api_keys": {
@@ -17,8 +23,26 @@
   "default_model": {
     "description": "默认模型",
     "type": "string",
-    "hint": "默认使用的图片生成模型",
+    "hint": "默认使用的图片生成模型，例如 gemini-3-pro-image-preview 或 gpt-image-2",
     "default": ""
+  },
+  "request_timeout": {
+    "description": "请求超时时间",
+    "type": "int",
+    "hint": "图片生成可能较慢，单位秒",
+    "default": 900
+  },
+  "image_size": {
+    "description": "输出尺寸",
+    "type": "string",
+    "hint": "OpenAI Images/BLT 可用，例如 1024x1024、1024x1792；留空则不传",
+    "default": ""
+  },
+  "fallback_to_avatar": {
+    "description": "无图片时使用发送者头像",
+    "type": "bool",
+    "hint": "关闭后，纯文字生图不会被发送者头像污染；At 用户仍会使用被 At 用户头像",
+    "default": false
   },
   "basic_generation": {
     "description": "基础生图配置",
@@ -56,7 +80,7 @@
   "commands": {
     "description": "自定义指令列表",
     "type": "list",
-    "hint": "每个项是一个对象，包含 trigger、prompt、negative_prompt、model 字段",
+    "hint": "每个项是一个对象，包含 trigger、prompt、negative_prompt、model 字段；provider 由全局配置统一决定",
     "items": {
       "type": "object",
       "items": {

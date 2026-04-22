@@ -67,7 +67,7 @@ class ImageWorkflow:
             return None
         return await loop.run_in_executor(None, self._extract_first_frame_sync, raw)
 
-    async def get_first_image(self, event: AstrMessageEvent) -> Optional[bytes]:
+    async def get_first_image(self, event: AstrMessageEvent, fallback_to_avatar: bool = False) -> Optional[bytes]:
         # 优先处理 Reply 中的图片
         for seg in event.message_obj.message:
             if isinstance(seg, Reply) and hasattr(seg, "chain") and seg.chain:
@@ -89,8 +89,9 @@ class ImageWorkflow:
                 if avatar := await self._get_avatar(str(seg.qq)):
                     return avatar
 
-        # 最后使用发送者头像
-        return await self._get_avatar(event.get_sender_id())
+        if fallback_to_avatar:
+            return await self._get_avatar(event.get_sender_id())
+        return None
 
     async def close(self):
         if self.session and not self.session.closed:
@@ -112,6 +113,10 @@ class GenericImageGenPlugin(Star):
         self.current_key_index = 0
         self.api_base_url = self.config.get("api_base_url", "")
         self.default_model = self.config.get("default_model", "")
+        self.provider = self.config.get("provider", "gemini").strip().lower()
+        self.request_timeout = int(self.config.get("request_timeout", 900))
+        self.image_size = self.config.get("image_size", "")
+        self.fallback_to_avatar = bool(self.config.get("fallback_to_avatar", False))
 
         # 基础生图配置
         basic_gen = self.config.get(
@@ -176,8 +181,10 @@ class GenericImageGenPlugin(Star):
         negative_prompt: Optional[str] = None,
         model: Optional[str] = None,
     ):
-        logger.info(f"_handle_generation 收到参数 - model: '{model}', prompt: '{prompt[:50]}'")
-        image_bytes = await self.iwf.get_first_image(event)
+        logger.info(
+            f"_handle_generation 收到参数 - provider: '{self.provider}', model: '{model}', prompt: '{prompt[:50]}'"
+        )
+        image_bytes = await self.iwf.get_first_image(event, fallback_to_avatar=self.fallback_to_avatar)
         yield event.plain_result("正在生成中，请稍候...")
 
         try:
@@ -197,7 +204,7 @@ class GenericImageGenPlugin(Star):
     async def _generate_with_api(
         self, image_bytes: Optional[bytes], prompt: str, negative_prompt: Optional[str], model: Optional[str]
     ) -> bytes | str | None:
-        logger.info(f"_generate_with_api 收到参数 - model: '{model}'")
+        logger.info(f"_generate_with_api 收到参数 - provider: '{self.provider}', model: '{model}'")
 
         async def api_operation(api_key: str):
             payload = {"prompt": prompt}
@@ -214,6 +221,7 @@ class GenericImageGenPlugin(Star):
             if image_bytes:
                 image_base64 = base64.b64encode(image_bytes).decode("utf-8")
                 payload["image"] = image_base64
+                payload["image_bytes"] = image_bytes
 
             return await self._send_api_request(payload, api_key)
 
@@ -221,14 +229,19 @@ class GenericImageGenPlugin(Star):
         return result if result else "所有API密钥均尝试失败"
 
     async def _send_api_request(self, payload: dict, api_key: str):
+        if self.provider in {"gemini", "google"}:
+            return await self._send_gemini_request(payload, api_key)
+        if self.provider in {"openai_images", "openai", "gpt", "blt", "bltcy"}:
+            return await self._send_openai_images_request(payload, api_key)
+        raise ValueError(f"不支持的 provider: {self.provider}")
+
+    async def _send_gemini_request(self, payload: dict, api_key: str):
         base_url = self.api_base_url.strip().removesuffix("/")
         model = payload.get("model", "")
 
-        # Gemini API 调用方式
         endpoint = f"{base_url}/v1beta/models/{model}:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
 
-        # 构建 Gemini 格式的 payload
         parts = [{"text": payload["prompt"]}]
         if "image" in payload:
             parts.append({"inlineData": {"mimeType": "image/png", "data": payload["image"]}})
@@ -238,7 +251,9 @@ class GenericImageGenPlugin(Star):
             "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
         }
 
-        async with self.iwf.session.post(url=endpoint, json=gemini_payload, headers=headers) as response:
+        async with self.iwf.session.post(
+            url=endpoint, json=gemini_payload, headers=headers, timeout=self.request_timeout
+        ) as response:
             if response.status != 200:
                 response_text = await response.text()
                 logger.error(f"API请求失败: HTTP {response.status}, 响应: {response_text}")
@@ -253,9 +268,93 @@ class GenericImageGenPlugin(Star):
         ):
             for part in data["candidates"][0]["content"]["parts"]:
                 if "inlineData" in part and "data" in part["inlineData"]:
-                    return base64.b64decode(part["inlineData"]["data"])
+                    return self._normalize_image_bytes(base64.b64decode(part["inlineData"]["data"]))
 
         raise Exception("操作成功，但未在响应中获取到图片数据")
+
+    async def _send_openai_images_request(self, payload: dict, api_key: str):
+        if "image_bytes" in payload:
+            return await self._send_openai_image_edit_request(payload, api_key)
+        return await self._send_openai_image_generation_request(payload, api_key)
+
+    async def _send_openai_image_generation_request(self, payload: dict, api_key: str):
+        base_url = self.api_base_url.strip().removesuffix("/")
+        endpoint = f"{base_url}/v1/images/generations"
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        request_payload = {
+            "model": payload["model"],
+            "prompt": payload["prompt"],
+            "response_format": "b64_json",
+        }
+        if self.image_size:
+            request_payload["size"] = self.image_size
+
+        async with self.iwf.session.post(
+            url=endpoint, json=request_payload, headers=headers, timeout=self.request_timeout
+        ) as response:
+            if response.status != 200:
+                response_text = await response.text()
+                logger.error(f"API请求失败: HTTP {response.status}, 响应: {response_text}")
+                response.raise_for_status()
+            data = await response.json()
+
+        return await self._extract_openai_image_response(data)
+
+    async def _send_openai_image_edit_request(self, payload: dict, api_key: str):
+        base_url = self.api_base_url.strip().removesuffix("/")
+        endpoint = f"{base_url}/v1/images/edits"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        form = aiohttp.FormData()
+        form.add_field("prompt", payload["prompt"])
+        form.add_field("model", payload["model"])
+        if self.image_size:
+            form.add_field("size", self.image_size)
+        if payload.get("negative_prompt"):
+            form.add_field("negative_prompt", payload["negative_prompt"])
+        form.add_field("image", payload["image_bytes"], filename="image.png", content_type="image/png")
+
+        async with self.iwf.session.post(
+            url=endpoint, data=form, headers=headers, timeout=self.request_timeout
+        ) as response:
+            if response.status != 200:
+                response_text = await response.text()
+                logger.error(f"API请求失败: HTTP {response.status}, 响应: {response_text}")
+                response.raise_for_status()
+            data = await response.json()
+
+        return await self._extract_openai_image_response(data)
+
+    async def _extract_openai_image_response(self, data: dict) -> bytes:
+        items = data.get("data")
+        if not isinstance(items, list) or not items:
+            raise Exception("操作成功，但响应中没有 data 图片列表")
+
+        item = items[0]
+        if not isinstance(item, dict):
+            raise Exception("操作成功，但图片响应格式异常")
+
+        if item.get("b64_json"):
+            return self._normalize_image_bytes(base64.b64decode(item["b64_json"]))
+
+        if item.get("url"):
+            async with self.iwf.session.get(item["url"], timeout=self.request_timeout) as resp:
+                resp.raise_for_status()
+                return self._normalize_image_bytes(await resp.read())
+
+        raise Exception("操作成功，但未在响应中获取到图片数据")
+
+    def _normalize_image_bytes(self, image_bytes: bytes) -> bytes:
+        png_sig = b"\x89PNG\r\n\x1a\n"
+        jpg_sig = b"\xff\xd8\xff"
+        if image_bytes.startswith((png_sig, jpg_sig)):
+            return image_bytes
+
+        png_offset = image_bytes.find(png_sig)
+        jpg_offset = image_bytes.find(jpg_sig)
+        offsets = [offset for offset in (png_offset, jpg_offset) if offset >= 0]
+        if offsets:
+            return image_bytes[min(offsets) :]
+        return image_bytes
 
     def _get_current_key(self):
         if not self.api_keys:
