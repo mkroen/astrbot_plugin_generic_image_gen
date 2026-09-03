@@ -206,6 +206,6 @@ Provider 和 model 的解析规则：
 
 ## 关于
 
-当前版本：v0.2.1  
+当前版本：v0.2.2
 作者：mkroen  
 许可：MIT License

@@ -2,6 +2,7 @@ import asyncio
 import base64
 import io
 import json
+from pathlib import Path
 from typing import Optional
 import aiohttp
 from PIL import Image as PILImage
@@ -11,6 +12,7 @@ from astrbot.api.star import Context, Star, register
 from astrbot.api.event.filter import event_message_type, EventMessageType
 from astrbot.core.platform.astr_message_event import AstrMessageEvent
 from astrbot.core.message.components import Image, At, Reply
+from astrbot.core.utils.quoted_message import extract_quoted_message_images
 
 
 class ImageWorkflow:
@@ -55,17 +57,29 @@ class ImageWorkflow:
             return raw
 
     async def _load_bytes(self, src: str) -> Optional[bytes]:
-        raw: Optional[bytes] = None
-        loop = asyncio.get_running_loop()
-
-        if src.startswith("http"):
-            raw = await self._download_image(src)
-        elif src.startswith("base64://"):
-            raw = await loop.run_in_executor(None, base64.b64decode, src[9:])
-
-        if not raw:
+        if not isinstance(src, str):
             return None
-        return await loop.run_in_executor(None, self._extract_first_frame_sync, raw)
+
+        try:
+            raw: Optional[bytes] = None
+            loop = asyncio.get_running_loop()
+            src = src.strip()
+
+            if src.startswith("http"):
+                raw = await self._download_image(src)
+            elif src.startswith("base64://"):
+                raw = await loop.run_in_executor(None, base64.b64decode, src[9:])
+            elif src.startswith("file://"):
+                raw = await loop.run_in_executor(None, Path(src[7:]).read_bytes)
+            elif Path(src).is_file():
+                raw = await loop.run_in_executor(None, Path(src).read_bytes)
+
+            if not raw:
+                return None
+            return await loop.run_in_executor(None, self._extract_first_frame_sync, raw)
+        except Exception as e:
+            logger.error(f"图片读取失败: {e}")
+            return None
 
     async def get_first_image(self, event: AstrMessageEvent, fallback_to_avatar: bool = False) -> Optional[bytes]:
         # 优先处理 Reply 中的图片
@@ -77,6 +91,17 @@ class ImageWorkflow:
                             return img
                         if sub_seg.file and (img := await self._load_bytes(sub_seg.file)):
                             return img
+
+            if isinstance(seg, Reply):
+                # QQ often sends only the quoted message ID. Ask OneBot for the
+                # original message so quoted images are not silently dropped.
+                try:
+                    quoted_refs = await extract_quoted_message_images(event, seg)
+                    for image_ref in quoted_refs:
+                        if img := await self._load_bytes(image_ref):
+                            return img
+                except Exception as e:
+                    logger.warning(f"引用图片回查失败: {e}")
 
         # 然后处理消息中的图片和 At
         for seg in event.message_obj.message:
@@ -102,7 +127,7 @@ class ImageWorkflow:
     "astrbot_plugin_generic_image_gen",
     "mkroen",
     "通用图片生成插件",
-    "0.2.1",
+    "0.2.2",
     "https://github.com/mkroen/astrbot_plugin_generic_image_gen",
 )
 class GenericImageGenPlugin(Star):
@@ -191,6 +216,10 @@ class GenericImageGenPlugin(Star):
             f"_handle_generation 收到参数 - provider: '{provider}', model: '{model}', prompt: '{prompt[:50]}'"
         )
         image_bytes = await self.iwf.get_first_image(event, fallback_to_avatar=self.fallback_to_avatar)
+        logger.info(
+            "图片输入解析结果: %s"
+            % (f"已附带 {len(image_bytes)} bytes" if image_bytes else "未找到图片")
+        )
         yield event.plain_result("正在生成中，请稍候...")
 
         try:
@@ -250,20 +279,40 @@ class GenericImageGenPlugin(Star):
         base_url = self.api_base_url.strip().removesuffix("/")
         model = payload.get("model", "")
 
-        endpoint = f"{base_url}/v1beta/models/{model}:generateContent?key={api_key}"
+        endpoint = f"{base_url}/v1beta/models/{model}:generateContent"
         headers = {"Content-Type": "application/json"}
+        request_params = None
+        if "/antigravity" in base_url or "sub2api" in base_url:
+            # Keep API keys out of URLs and exception logs when using Sub2API.
+            headers["Authorization"] = f"Bearer {api_key}"
+        else:
+            request_params = {"key": api_key}
 
         parts = [{"text": payload["prompt"]}]
         if "image" in payload:
-            parts.append({"inlineData": {"mimeType": "image/png", "data": payload["image"]}})
+            image_bytes = payload.get("image_bytes") or b""
+            if image_bytes.startswith(b"\xff\xd8\xff"):
+                image_mime = "image/jpeg"
+            elif image_bytes.startswith(b"RIFF") and image_bytes[8:12] == b"WEBP":
+                image_mime = "image/webp"
+            else:
+                image_mime = "image/png"
+            parts.append({"inlineData": {"mimeType": image_mime, "data": payload["image"]}})
 
         gemini_payload = {
             "contents": [{"role": "user", "parts": parts}],
-            "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
+            "generationConfig": {
+                "responseModalities": ["TEXT", "IMAGE"],
+                "imageConfig": {"aspectRatio": "1:1", "imageSize": "1K"},
+            },
         }
 
         async with self.iwf.session.post(
-            url=endpoint, json=gemini_payload, headers=headers, timeout=self.request_timeout
+            url=endpoint,
+            params=request_params,
+            json=gemini_payload,
+            headers=headers,
+            timeout=self.request_timeout,
         ) as response:
             if response.status != 200:
                 response_text = await response.text()
@@ -278,8 +327,9 @@ class GenericImageGenPlugin(Star):
             and "parts" in data["candidates"][0]["content"]
         ):
             for part in data["candidates"][0]["content"]["parts"]:
-                if "inlineData" in part and "data" in part["inlineData"]:
-                    return self._normalize_image_bytes(base64.b64decode(part["inlineData"]["data"]))
+                inline = part.get("inlineData") or part.get("inline_data")
+                if isinstance(inline, dict) and inline.get("data"):
+                    return self._normalize_image_bytes(base64.b64decode(inline["data"]))
 
         raise Exception("操作成功，但未在响应中获取到图片数据")
 
